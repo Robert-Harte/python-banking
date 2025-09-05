@@ -1,0 +1,28 @@
+Phase 1
+Banking app should do the following:
+
+1.  View balance
+2.  Add to balance
+3.  Subtract from balance
+
+
+For balance updates, include a datetime stamp and the reason (salary, purchase etc)
+
+Accounts should be linked to a customer.
+
+
+=======================================================
+Phase 2
+
+Extend banking app to include multiple account types
+
+
+1.  Current account
+2.  Savings account
+
+Both should linked to the same person/account. It should also not be possible to have a savings account with a current account.
+
+=======================================================
+Phase 3
+
+For the savings account, implement interest rate calculator.
