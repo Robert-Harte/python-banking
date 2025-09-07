@@ -5,11 +5,9 @@ Banking app should do the following:
 2.  Add to balance
 3.  Subtract from balance
 
-
 For balance updates, include a datetime stamp and the reason (salary, purchase etc)
 
 Accounts should be linked to a customer.
-
 
 =======================================================
 Phase 2
@@ -26,3 +24,16 @@ Both should linked to the same person/account. It should also not be possible to
 Phase 3
 
 For the savings account, implement interest rate calculator.
+
+=======================================================
+Phase 4
+
+1.  Store data in a database.
+
+=======================================================
+Phase 5
+
+Implement a GUI:
+
+1.  Customers
+2.  Accounts
