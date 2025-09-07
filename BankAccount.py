@@ -43,4 +43,26 @@ class CurrentAccount:
                 self.balance -= amount
         else:
             print("This is not a valid amount!")
-        
+
+class SavingsAccount:
+    def __init__ (self, id, cur_acc_id, account_name, account_number):
+        self.id = id
+        self.customer_id = cur_acc_id
+        self.account_name = account_name
+        self.sort_code = "200000"
+        self.account_number = account_number
+        self.balance = 0.00
+        self.status = True          #    True = enabled, False = disabled
+
+    def __bool__(self):
+        return self.status != 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.id >= self.id:
+            raise StopIteration
+        else:
+            self.id += 1
+            return self.id - 1
