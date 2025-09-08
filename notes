@@ -15,10 +15,10 @@ Phase 2
 Extend banking app to include multiple account types
 
 
-1.  Current account
+1.  Current account (implemented already)
 2.  Savings account
 
-Both should linked to the same person/account. It should also not be possible to have a savings account with a current account.
+Both should linked to the same person/account. It should also not be possible to have a savings account without a current account.
 
 =======================================================
 Phase 3
