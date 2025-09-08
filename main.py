@@ -24,6 +24,7 @@ def display_customer_options():
     print("3. Edit exsting account details")
     print("4. Update account balance")
     print("5. View account transactions")
+    print("6. Calculate interest")
     print("X. Return to main menu")
     option = input("Select option: ").lower()
     return option
@@ -123,6 +124,15 @@ def view_transactions(account_id, transactions):
             print("---------------")
             print(f"Transaction ID: {key}\r\nAccount ID: {val.account_id}\r\nAmount: £{val.amount}\r\nDescription: {val.description}\r\nDate: {val.date}\r\nType: {val.type}")
 
+# Interest calculator for savings accounts
+def interest_calculator(savings_account, duration):
+    principal = savings_account.balance
+    counter = 0
+    while counter < duration:
+        principal += (principal / 100) * savings_account.interest_rate
+        print(f"The amount will be after {counter + 1} years: £{principal:.2f}")
+        counter += 1
+        
 def main():
     is_running = True
     accounts = {}
@@ -229,6 +239,14 @@ def main():
                                                 view_transactions(account_id, transactions)
                                     else:
                                         print(f"Bank account ID: {current_account} does not exist!")
+                                case "6":
+                                    try:
+                                        account_id = int(input("Enter account ID: "))
+                                        duration = int(input("Enter number of years to calculate interest for: "))
+                                        for key, val in savings_accounts.items():
+                                            interest_calculator(val, duration)
+                                    except ValueError:
+                                        print("Account ID or duration must be a number!")
                                 case "x":
                                     break
                                 case _:
