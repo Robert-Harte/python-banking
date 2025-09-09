@@ -2,6 +2,11 @@
 
 Introduction into learning python and Git.
 
-Phase 1 and Phase 2 implemented.
+Phase 1 implemented
 
-Phase 3 in progress. Update uploaded to git branch for review.
+Phase 2 implemented.
+
+Phase 3 implemented.
+
+Phase 4 in progess. Customer object updated to use database for storage. Current accounts in progress.  Savings accounts and transactions not started.
+
