@@ -40,20 +40,25 @@ def display_customer_options():
     return option
 
 # Creates a new customer object. Returns the new customer to caller.
-def create_customer(id, customer_name):
+def create_customer():
+    customer_name = input("Enter customer's name: ")
     print("*****************************************")
-    customer = Customer(id, customer_name)
-    return customer
+    mycursor.execute("SELECT COUNT(*) FROM customers")
+    num_records = 0
+    for x in mycursor:
+        num_records = x[0] + 1
+    mycursor.execute("INSERT INTO customers (id, name) VALUES (%s,%s)", (num_records,customer_name))
+    mydb.commit()
+    print(f"New account successfully setup. Account ID:{num_records}; Account name: {customer_name}")
 
 # Displays the list of customers
-def view_customers(accounts):
+def view_customers():
     print("*****************************************")
     print("Customer Accounts list:")
-    for key, value in accounts.items():
-        print(f"Account Id: {key}. Account name: {value}")
-    
+
     mycursor.execute("SELECT * FROM customers")
-    print()
+    for x in mycursor:
+        print(f"Account ID: {x[0]}. Account name: {x[1]}")
     
 
 # Create a current account. Linked by customer_id to the customer.
@@ -158,15 +163,12 @@ def main():
     print("Welcome to Robert's Banking App. Please select an option:")
     while is_running:
         option = display_main_options()
-
         match option:
             case "1":   # Create a new customer.
                 # Calls the create_customer method. Customer_Id increments by 1 each time. The customer name is entered by the user.
-                customer = create_customer(100000 + len(accounts), input("Enter customer's name: "))
-                accounts.update({customer.id: customer.account_name})
-                print(f"New account successfully setup. ID: {customer.id}; Account name: {customer.account_name}")
+                create_customer()
             case "2":   # View list of customers
-                view_customers(accounts)
+                view_customers()
             case "3":   # Manage customer accounts
                 # Test if the customer_id is valid / exists in the accounts set.
                 try:
