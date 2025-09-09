@@ -1,11 +1,21 @@
 import random
 import datetime
+import mysql.connector
 
 #Custom imports
 from Customer import Customer
 from BankAccount import CurrentAccount
 from BankAccount import SavingsAccount
 from Transaction import Transaction
+
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="python",
+  password="B0tt0ml1n3",
+  database="BankingApp"
+)
+
+mycursor = mydb.cursor()
 
 # Displays the main list of options. Also returns the option selected.
 def display_main_options():
@@ -41,6 +51,10 @@ def view_customers(accounts):
     print("Customer Accounts list:")
     for key, value in accounts.items():
         print(f"Account Id: {key}. Account name: {value}")
+    
+    mycursor.execute("SELECT * FROM customers")
+    print()
+    
 
 # Create a current account. Linked by customer_id to the customer.
 def create_current_account(account_id, customer_id, account_name, account_number):
@@ -139,6 +153,7 @@ def main():
     current_accounts = {}
     savings_accounts = {}
     transactions = {}
+    
 
     print("Welcome to Robert's Banking App. Please select an option:")
     while is_running:
@@ -239,7 +254,7 @@ def main():
                                                 view_transactions(account_id, transactions)
                                     else:
                                         print(f"Bank account ID: {current_account} does not exist!")
-                                case "6":
+                                case "6":   # Interest calculator for savings account.
                                     try:
                                         account_id = int(input("Enter account ID: "))
                                         duration = int(input("Enter number of years to calculate interest for: "))
