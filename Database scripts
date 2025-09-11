@@ -33,3 +33,12 @@ CREATE TABLE savings_accounts (
     status BOOLEAN
     UNIQUE KEY cur_acc_id_UNIQUE (cur_acc_id)
 );
+
+CREATE TABLE transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT,
+    amount DECIMAL(13,2),
+    description VARCHAR(100),
+    entered_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(10)
+)

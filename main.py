@@ -1,6 +1,7 @@
 import random
 import datetime
 import mysql.connector
+from decimal import Decimal
 
 #Custom imports
 from Customer import Customer
@@ -70,7 +71,7 @@ def check_cust_exists(id):
             print(f"This account does not exist!")
             return "error"
 
-# Create a current account. Linked by customer_id to the customer.
+# Create a bank account. Linked by customer_id to the customer.
 def create_bank_account(customer):
     acc_type = input("Enter account type (C) Current Account, (S) Savings Account: ").lower()
     if acc_type == 'c':
@@ -116,46 +117,107 @@ def view_customer_accounts(customer):
         print(f"Account ID: {x[0]}\r\nCustomer ID: {x[1]}\r\nCurrent Account ID: {x[2]}\r\nAccount name: {x[3]}\r\nSort code: {x[4]}\r\nAccount number: {x[5]}\r\nBalance: £{x[6]:.2f}\r\nStatus: {'Enabled' if x[8] == 1 else 'Disabled'}")
 
 # Updates the current account. Only fields available are account name and status
-def update_current_account(current_account):
-    field = input("Enter field to update. (N) Account name, (S) Status, (Q) Quit: ").lower()
-    match field:
-        case "n":
-            new_name = input("Enter new account name: ")
-            current_account.change_account(attribute="account_name", value=new_name)
-            return current_account
-        case "s":
-            new_status = input(f"Do you want to {'disable' if current_account.status == True else 'enable'} your account (Y) = yes, (N) = no: ").lower()
-            if new_status == "y":
-                current_account.change_account(attribute="status", value=False if current_account.status == True else True)
-                print(f"Account has been {'enabled' if current_account.status == True else 'disabled'}")
-                return current_account
-            else:
+def update_current_account(customer):
+    has_results = False        
+    current_account = int(input("Enter current account ID: "))
+    mycursor.execute(f"SELECT * FROM current_accounts WHERE id = {current_account}")
+    for x in mycursor:
+        has_results = True
+        field = input("Enter field to update. (N) Account name, (S) Status, (Q) Quit: ").lower()
+        match field:
+            case "n":
+                new_name = input("Enter new account name: ")
+                mycursor.execute(f"UPDATE current_accounts SET account_name = '{new_name}' WHERE id = {current_account}")
+                mydb.commit()
+                print("Account name successfully updated!")
+                break
+            case "s":
+                new_status = input(f"Do you want to {'disable' if x[6] == True else 'enable'} your account (Y) = yes, (N) = no: ").lower()
+                if new_status == "y":
+                    mycursor.execute(f"UPDATE current_accounts SET status = {1 if x[6] == 0 else 0} WHERE id = {current_account}")
+                    mydb.commit()
+                    print(f"Account status successfully updated! Account is now {'enabled' if x[6] == 0 else 'disabled'}")
+                    break
+                else:
+                    pass
+            case "q":
                 pass
-        case "q":
-            pass    
+    if not has_results:
+        print("The current account does not exist!. Cannot create a savings account!")
 
 # Add transactions to the system to increase or decrease the balance.
-def update_balance(account, transactions):
-    # Validate on fields. This also be enforced by the Class as well.
+def update_cur_acc_balance():
+    has_results = False
+    
     try:
-        amount = float(input("Enter the amount: "))
-        description = input("Enter a description for the payment: ")
-        type = input("Enter a type (C) for Credit, (D) for Debit: ").lower()
-        if(type != 'c' and type != 'd'):
-            print("Invalid transaction type!")
-            return ("Error")
-        typeValue = ("credit" if type == 'c' else "debit")
-        date = datetime.datetime.now()
-        date = date.strftime("%Y-%m-%d %H:%M:%S")
-        tran_id = len(transactions) + 1
-        transaction = Transaction(tran_id, account.id, amount, description, date, typeValue)
-        transactions.update({tran_id: transaction})
-        account.update_balance(amount=amount, type=typeValue)
-        response = (account, transactions)
-        return response
+        account_id = int(input("Enter account ID: "))
+        mycursor.execute(f"SELECT * FROM current_accounts WHERE id = {account_id}")
+        # Current Accounts
+        for x in mycursor:
+            has_results = True
+            new_balance = x[5]
+            if x[6] == 1:
+                amount = Decimal(input("Enter the amount: "))
+                description = input("Enter a description for the payment: ")
+                type = input("Enter a type (C) for Credit, (D) for Debit: ").lower()
+                if type == 'c':
+                   new_balance += amount
+                elif type == 'd':
+                    new_balance -= amount
+                else:
+                    print("Invalid transaction type!")
+                    return ("Error")
+                typeValue = ("credit" if type == 'c' else "debit")
+                date = datetime.datetime.now()
+                date = date.strftime("%Y-%m-%d %H:%M:%S")
+                mycursor.execute("INSERT INTO transactions (account_id, amount, description, type) VALUES (%s,%s,%s,%s)", (account_id, amount, description, typeValue))
+                mydb.commit()
+                print("Successfully added transaction! Updating account balance.")
+                mycursor.execute(f"UPDATE current_accounts SET balance = {new_balance} WHERE id = {account_id}")
+                mydb.commit()
+                print(f"Balance successfully updated! New balance is: £{new_balance}")
+            else:
+                print("Account has been disabled! No new transactions can be added.")
+        if not has_results:
+            print(f"Bank account ID: {account_id} does not exist!")
     except ValueError:
         print(f"The amount you have entered is not valid!")
-        return
+    return
+
+# Add transactions to the system to increase or decrease the balance.
+def update_sav_acc_balance():
+    has_results = False
+    
+    try:
+        account_id = int(input("Enter account ID: "))
+        mycursor.execute(f"SELECT * FROM savings_accounts WHERE id = {account_id}")
+        for x in mycursor:
+            new_balance = x[6]
+            has_results = True
+            if x[8] == 1:
+                amount = Decimal(input("Enter the amount: "))
+                description = input("Enter a description for the payment: ")
+                type = input("Enter a type (C) for Credit, (D) for Debit: ").lower()
+                if type == 'c':
+                   new_balance += amount
+                elif type == 'd':
+                    new_balance -= amount
+                else:
+                    print("Invalid transaction type!")
+                    return ("Error")
+                typeValue = ("credit" if type == 'c' else "debit")
+                date = datetime.datetime.now()
+                date = date.strftime("%Y-%m-%d %H:%M:%S")
+                mycursor.execute("INSERT INTO transactions (account_id, amount, description, type) VALUES (%s,%s,%s,%s)", (account_id, amount, description, typeValue))
+                print("Successfully added transaction! Updating account balance.")
+                mycursor.execute(f"UPDATE savings_accounts SET balance = {new_balance} WHERE id = {account_id}")
+                mydb.commit()
+                print(f"Balance successfully updated! New balance is: £{new_balance}")
+        if not has_results:
+            print(f"Bank account ID: {account_id} does not exist!")
+    except ValueError:
+        print(f"The amount you have entered is not valid!")
+    return  
 
 # Displays the list of transactions for a specific account
 def view_transactions(account_id, transactions):
@@ -206,49 +268,15 @@ def main():
                                 case "2":   # Create new bank account account
                                     create_bank_account(customer)
                                 case "3":   # Editing the account. Select account, then call the update_current_account() method.
-                                    # Keep running until the person quits
-                                    while True:                                    
-                                        current_account = int(input("Enter account ID: "))
-                                        if current_account in current_accounts:
-                                            for key, val in current_accounts.items():
-                                                if key == current_account:
-                                                    current_accounts[key] = update_current_account(val)
-                                            break
-                                        else:
-                                            print(f"Bank account ID: {current_account} does not exist!")
-                                            break
+                                    update_current_account(customer)
                                 case "4":   # Add transactions to a bank account
-                                    # Keep running until the person quits
-                                    while True:
-                                        account_id = int(input("Enter account ID: "))
-                                        if account_id in current_accounts:
-                                            for key, val in current_accounts.items():
-                                                if key == account_id:
-                                                    if(val.status is True):
-                                                        response = update_balance(val, transactions)
-                                                        if response == "Error":
-                                                            pass
-                                                        else:
-                                                            current_accounts[key] = response[0]
-                                                            transactions = response[1]
-                                                    else:
-                                                        print("Account is not active. Cannot add transactions.")
-                                            break
-                                        elif account_id in savings_accounts:
-                                            for key, val in savings_accounts.items():
-                                                if key == account_id:
-                                                    if(val.status is True):
-                                                        response = update_balance(val, transactions)
-                                                        if response == "Error":
-                                                            pass
-                                                        else:
-                                                            savings_accounts[key] = response[0]
-                                                            transactions = response[1]
-                                                    else:
-                                                        print("Account is not active. Cannot add transactions.")
-                                            break
-                                        else:
-                                            print(f"Bank account ID: {current_account} does not exist!")
+                                    type = input("Enter which account type you wish to update (C) Current Account, (S) Savings Account: ").lower()
+                                    if type == "c":
+                                        update_cur_acc_balance()
+                                    elif type == "s":
+                                        update_sav_acc_balance()
+                                    else:
+                                        print("Invalid option! Test")
                                 case "5":   # View list of transactions for a bank account
                                     account_id = int(input("Enter account ID: "))
                                     if account_id in current_accounts:
