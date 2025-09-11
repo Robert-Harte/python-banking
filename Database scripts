@@ -11,7 +11,7 @@ CREATE TABLE customers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE current_account (
+CREATE TABLE current_accounts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT,
     account_name VARCHAR(100),
@@ -21,7 +21,7 @@ CREATE TABLE current_account (
     status BOOLEAN
 );
 
-CREATE TABLE savings_account (
+CREATE TABLE savings_accounts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT,
     cur_acc_id INT,
@@ -31,4 +31,5 @@ CREATE TABLE savings_account (
     balance DECIMAL(13,2),
     interest_rate DECIMAL(5,2),
     status BOOLEAN
+    UNIQUE KEY cur_acc_id_UNIQUE (cur_acc_id)
 );

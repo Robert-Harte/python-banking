@@ -49,7 +49,7 @@ def create_customer():
         num_records = x[0] + 1
     mycursor.execute("INSERT INTO customers (id, name) VALUES (%s,%s)", (num_records,customer_name))
     mydb.commit()
-    print(f"New account successfully setup. Account ID:{num_records}; Account name: {customer_name}")
+    print(f"New account successfully setup. Account ID: {num_records}; Account name: {customer_name}")
 
 # Displays the list of customers
 def view_customers():
@@ -59,37 +59,61 @@ def view_customers():
     mycursor.execute("SELECT * FROM customers")
     for x in mycursor:
         print(f"Account ID: {x[0]}. Account name: {x[1]}")
-    
+
+# Check if customer exists
+def check_cust_exists(id):
+    mycursor.execute(f"SELECT * FROM customers WHERE ID = {id}")
+    for x in mycursor:
+        if x[0] > 0:
+            return (x[0], x[1])
+        else:
+            print(f"This account does not exist!")
+            return "error"
 
 # Create a current account. Linked by customer_id to the customer.
-def create_current_account(account_id, customer_id, account_name, account_number):
-    account = CurrentAccount(account_id, customer_id, account_name, account_number)
-    return account
+def create_bank_account(customer):
+    acc_type = input("Enter account type (C) Current Account, (S) Savings Account: ").lower()
+    if acc_type == 'c':
+        account_name = input("Enter Bank Account Name: ")
+        mycursor.execute("INSERT INTO current_accounts (customer_id, account_name, sort_code, account_number, balance, status) VALUES (%s,%s,%s,%s,%s,%s)", (customer[0], account_name, "070116", random.randint(10000000, 99999999), 0.00, True))
+        mydb.commit()
+        print(f"New current account successfully setup!")
+    elif acc_type == 's':
+        # Check for active current account.
+        has_results = False        
+        current_account = int(input("Enter current account ID: "))
+        mycursor.execute(f"SELECT * FROM current_accounts WHERE id = {current_account}")
+        for x in mycursor:
+            has_results = True
+            if x[6] == 1:
+                account_name = input("Enter Bank Account Name: ")
+                mycursor.execute("INSERT INTO savings_accounts (customer_id, cur_acc_id, account_name, sort_code, account_number, balance, interest_rate, status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", (customer[0], random.randint(1000, 9999), account_name, "070116", random.randint(10000000, 99999999), 0.00, 5.00, True))
+                mydb.commit()
+                print(f"New savings account successfully setup!")
+            else:
+                print("The current account is not active! Cannot create savings account!")
+        if not has_results:
+            print("The current account does not exist!. Cannot create a savings account!")
+    else:
+        print("Invalid account type!")
 
-# Create a savings account. Linked by acocunt_id to a current account.
-def create_savings_account(account_id, customer_id, cur_acc_id, account_name, account_number):
-    account = SavingsAccount(account_id, customer_id, cur_acc_id, account_name, account_number)
-    return account
-
-# Displays the list of current accounts for a specific customer
-def view_customer_current_accounts(customer_name, customer_id, current_accounts):
+# Displays the list of bank accounts for a specific customer
+def view_customer_accounts(customer):
     print("*****************************************")
-    print(f"{customer_name} current account list:")
+    print(f"{customer[1]} current account list:")
     
-    for id, val in current_accounts.items():
-        if val.customer_id == customer_id:
-            print("---------------")
-            print(f"Account ID: {val.id}\r\nCustomer ID: {val.customer_id}\r\nAccount name: {val.account_name}\r\nSort code: {val.sort_code}\r\nAccount number: {val.account_number}\r\nBalance: £{val.balance:.2f}\r\nStatus: {'Enabled' if val.status == True else 'Disabled'}")
-            
-# Displays the list of current accounts for a specific customer
-def view_customer_savings_accounts(customer_name, customer_id, savings_accounts):
+    mycursor.execute(f"SELECT * FROM current_accounts WHERE customer_id = {customer[0]}")
+    for x in mycursor:
+        print("---------------")
+        print(f"Account ID: {x[0]}\r\nCustomer ID: {x[1]}\r\nAccount name: {x[2]}\r\nSort code: {x[3]}\r\nAccount number: {x[4]}\r\nBalance: £{x[5]:.2f}\r\nStatus: {'Enabled' if x[6] == 1 else 'Disabled'}")
+    
     print("*****************")
-    print(f"{customer_name} savings account list:")
+    print(f"{customer[1]} savings account list:")
     
-    for id, val in savings_accounts.items():
-        if val.customer_id == customer_id:
-            print("---------------")
-            print(f"Account ID: {val.id}\r\nCustomer ID: {val.customer_id}\r\nCurrent Account ID: {val.cur_acc_id}\r\nAccount name: {val.account_name}\r\nSort code: {val.sort_code}\r\nAccount number: {val.account_number}\r\nBalance: £{val.balance:.2f}\r\nStatus: {'Enabled' if val.status == True else 'Disabled'}")
+    mycursor.execute(f"SELECT * FROM savings_accounts WHERE customer_id = {customer[0]}")
+    for x in mycursor:
+        print("---------------")
+        print(f"Account ID: {x[0]}\r\nCustomer ID: {x[1]}\r\nCurrent Account ID: {x[2]}\r\nAccount name: {x[3]}\r\nSort code: {x[4]}\r\nAccount number: {x[5]}\r\nBalance: £{x[6]:.2f}\r\nStatus: {'Enabled' if x[8] == 1 else 'Disabled'}")
 
 # Updates the current account. Only fields available are account name and status
 def update_current_account(current_account):
@@ -154,11 +178,9 @@ def interest_calculator(savings_account, duration):
         
 def main():
     is_running = True
-    accounts = {}
     current_accounts = {}
     savings_accounts = {}
     transactions = {}
-    
 
     print("Welcome to Robert's Banking App. Please select an option:")
     while is_running:
@@ -170,38 +192,19 @@ def main():
             case "2":   # View list of customers
                 view_customers()
             case "3":   # Manage customer accounts
-                # Test if the customer_id is valid / exists in the accounts set.
+                # Test if the customer_id is valid / exists in the database.
                 try:
-                    customer_id = int(input("Enter the Customer ID: "))
-                    if accounts.get(customer_id):
+                    customer = ()
+                    customer = check_cust_exists(int(input("Enter the Customer ID: ")))
+                    if customer != "error":
                         # Customer exists, so now go into the customer accounts menu.
                         while True:
                             cust_option = display_customer_options()
                             match cust_option:
                                 case "1":   # View list of bank accounts
-                                    view_customer_current_accounts(accounts.get(customer_id), customer_id, current_accounts)
-                                    view_customer_savings_accounts(accounts.get(customer_id), customer_id, savings_accounts)
+                                    view_customer_accounts(customer)
                                 case "2":   # Create new bank account account
-                                    acc_type = input("Enter account type (C) Current Account, (S) Savings Account: ").lower()
-                                    if acc_type == 'c':
-                                        account_name = input("Enter Bank Account Name: ")
-                                        new_account = create_current_account(500000 + len(current_accounts), customer_id, account_name, random.randint(10000000, 99999999))
-                                        current_accounts.update({new_account.id: new_account})
-                                    elif acc_type == 's':
-                                        # Check for active current account.
-                                        current_account = int(input("Enter current account ID: "))
-                                        if current_account in current_accounts:
-                                            for key, val in current_accounts.items():
-                                                if key == current_account and val.status == True:
-                                                    account_name = input("Enter Bank Account Name: ")
-                                                    new_account = create_savings_account(900000 + len(savings_accounts), customer_id, current_account, account_name, random.randint(10000000, 99999999))
-                                                    savings_accounts.update({new_account.id: new_account})
-                                                else:
-                                                    print("Account is not active. Cannot create savings account.")
-                                        else:
-                                            print("Customer does not have an active current account. Cannot create a savings account!")
-                                    else:
-                                        print("Invalid account type!")
+                                    create_bank_account(customer)
                                 case "3":   # Editing the account. Select account, then call the update_current_account() method.
                                     # Keep running until the person quits
                                     while True:                                    
@@ -268,8 +271,6 @@ def main():
                                     break
                                 case _:
                                     print("Invalid option! Please select another option: ")
-                    else:
-                        print(f"Customer ID {customer_id} does not exist!")
                 except ValueError:
                     print(f"Invalid value!")
             case "q":   # Quit the application
