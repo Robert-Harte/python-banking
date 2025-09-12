@@ -12,7 +12,7 @@ from Transaction import Transaction
 mydb = mysql.connector.connect(
   host="localhost",
   user="python",
-  password="B0tt0ml1n3",
+  password="P@ssword123",
   database="BankingApp"
 )
 
