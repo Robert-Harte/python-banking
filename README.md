@@ -8,4 +8,15 @@ Phase 2 implemented.
 
 Phase 3 implemented.
 
-Phase 4 in progess. Customer object updated to use database for storage. Creating new Current account and savings accounts, and editing current accounts database implementation complete. Implemented the insertion of transactions and update of current / savings accounts. Viewing transactions not yet implemented.
+Phase 4 in progess - conversion to using a database.
+    Implemented:
+        -   Customers (Adding / Viewing)
+        -   Bank accounts (Current / Savings accounts)
+            -   Adding
+            -   Viewing
+            -   Amending
+        -   Transactions
+            -   Adding
+            -   Viewing
+            -   Updating account balance
+        -   Interest rate calculator (for Savings Accounts only)

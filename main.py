@@ -76,19 +76,19 @@ def create_bank_account(customer):
     acc_type = input("Enter account type (C) Current Account, (S) Savings Account: ").lower()
     if acc_type == 'c':
         account_name = input("Enter Bank Account Name: ")
-        mycursor.execute("INSERT INTO current_accounts (customer_id, account_name, sort_code, account_number, balance, status) VALUES (%s,%s,%s,%s,%s,%s)", (customer[0], account_name, "070116", random.randint(10000000, 99999999), 0.00, True))
+        mycursor.execute("INSERT INTO current_accounts (account_id, customer_id, account_name, sort_code, account_number, balance, status) VALUES (%s,%s,%s,%s,%s,%s,%s)", (random.randint(10000, 19999), customer[0], account_name, "070116", random.randint(10000000, 99999999), 0.00, True))
         mydb.commit()
         print(f"New current account successfully setup!")
     elif acc_type == 's':
         # Check for active current account.
         has_results = False        
         current_account = int(input("Enter current account ID: "))
-        mycursor.execute(f"SELECT * FROM current_accounts WHERE id = {current_account}")
+        mycursor.execute(f"SELECT * FROM current_accounts WHERE account_id = {current_account}")
         for x in mycursor:
             has_results = True
-            if x[6] == 1:
+            if x[7] == 1:
                 account_name = input("Enter Bank Account Name: ")
-                mycursor.execute("INSERT INTO savings_accounts (customer_id, cur_acc_id, account_name, sort_code, account_number, balance, interest_rate, status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", (customer[0], random.randint(1000, 9999), account_name, "070116", random.randint(10000000, 99999999), 0.00, 5.00, True))
+                mycursor.execute("INSERT INTO savings_accounts (account_id, customer_id, cur_acc_id, account_name, sort_code, account_number, balance, interest_rate, status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)", (random.randint(20000, 29999),customer[0], random.randint(1000, 9999), account_name, "070116", random.randint(10000000, 99999999), 0.00, 5.00, True))
                 mydb.commit()
                 print(f"New savings account successfully setup!")
             else:
@@ -106,7 +106,7 @@ def view_customer_accounts(customer):
     mycursor.execute(f"SELECT * FROM current_accounts WHERE customer_id = {customer[0]}")
     for x in mycursor:
         print("---------------")
-        print(f"Account ID: {x[0]}\r\nCustomer ID: {x[1]}\r\nAccount name: {x[2]}\r\nSort code: {x[3]}\r\nAccount number: {x[4]}\r\nBalance: £{x[5]:.2f}\r\nStatus: {'Enabled' if x[6] == 1 else 'Disabled'}")
+        print(f"Account ID: {x[1]}\r\nCustomer ID: {x[2]}\r\nAccount name: {x[3]}\r\nSort code: {x[4]}\r\nAccount number: {x[5]}\r\nBalance: £{x[6]:.2f}\r\nStatus: {'Enabled' if x[7] == 1 else 'Disabled'}")
     
     print("*****************")
     print(f"{customer[1]} savings account list:")
@@ -114,29 +114,29 @@ def view_customer_accounts(customer):
     mycursor.execute(f"SELECT * FROM savings_accounts WHERE customer_id = {customer[0]}")
     for x in mycursor:
         print("---------------")
-        print(f"Account ID: {x[0]}\r\nCustomer ID: {x[1]}\r\nCurrent Account ID: {x[2]}\r\nAccount name: {x[3]}\r\nSort code: {x[4]}\r\nAccount number: {x[5]}\r\nBalance: £{x[6]:.2f}\r\nStatus: {'Enabled' if x[8] == 1 else 'Disabled'}")
+        print(f"Account ID: {x[1]}\r\nCustomer ID: {x[2]}\r\nCurrent Account ID: {x[3]}\r\nAccount name: {x[4]}\r\nSort code: {x[5]}\r\nAccount number: {x[6]}\r\nBalance: £{x[7]:.2f}\r\nStatus: {'Enabled' if x[9] == 1 else 'Disabled'}")
 
 # Updates the current account. Only fields available are account name and status
 def update_current_account(customer):
     has_results = False        
     current_account = int(input("Enter current account ID: "))
-    mycursor.execute(f"SELECT * FROM current_accounts WHERE id = {current_account}")
+    mycursor.execute(f"SELECT * FROM current_accounts WHERE account_id = {current_account}")
     for x in mycursor:
         has_results = True
         field = input("Enter field to update. (N) Account name, (S) Status, (Q) Quit: ").lower()
         match field:
             case "n":
                 new_name = input("Enter new account name: ")
-                mycursor.execute(f"UPDATE current_accounts SET account_name = '{new_name}' WHERE id = {current_account}")
+                mycursor.execute(f"UPDATE current_accounts SET account_name = '{new_name}' WHERE account_id = {current_account}")
                 mydb.commit()
                 print("Account name successfully updated!")
                 break
             case "s":
-                new_status = input(f"Do you want to {'disable' if x[6] == True else 'enable'} your account (Y) = yes, (N) = no: ").lower()
+                new_status = input(f"Do you want to {'disable' if x[7] == True else 'enable'} your account (Y) = yes, (N) = no: ").lower()
                 if new_status == "y":
-                    mycursor.execute(f"UPDATE current_accounts SET status = {1 if x[6] == 0 else 0} WHERE id = {current_account}")
+                    mycursor.execute(f"UPDATE current_accounts SET status = {1 if x[7] == 0 else 0} WHERE account_id = {current_account}")
                     mydb.commit()
-                    print(f"Account status successfully updated! Account is now {'enabled' if x[6] == 0 else 'disabled'}")
+                    print(f"Account status successfully updated! Account is now {'enabled' if x[7] == 0 else 'disabled'}")
                     break
                 else:
                     pass
@@ -151,12 +151,12 @@ def update_cur_acc_balance():
     
     try:
         account_id = int(input("Enter account ID: "))
-        mycursor.execute(f"SELECT * FROM current_accounts WHERE id = {account_id}")
+        mycursor.execute(f"SELECT * FROM current_accounts WHERE account_id = {account_id}")
         # Current Accounts
         for x in mycursor:
             has_results = True
-            new_balance = x[5]
-            if x[6] == 1:
+            new_balance = x[6]
+            if x[7] == 1:
                 amount = Decimal(input("Enter the amount: "))
                 description = input("Enter a description for the payment: ")
                 type = input("Enter a type (C) for Credit, (D) for Debit: ").lower()
@@ -173,7 +173,7 @@ def update_cur_acc_balance():
                 mycursor.execute("INSERT INTO transactions (account_id, amount, description, type) VALUES (%s,%s,%s,%s)", (account_id, amount, description, typeValue))
                 mydb.commit()
                 print("Successfully added transaction! Updating account balance.")
-                mycursor.execute(f"UPDATE current_accounts SET balance = {new_balance} WHERE id = {account_id}")
+                mycursor.execute(f"UPDATE current_accounts SET balance = {new_balance} WHERE account_id = {account_id}")
                 mydb.commit()
                 print(f"Balance successfully updated! New balance is: £{new_balance}")
             else:
@@ -190,11 +190,11 @@ def update_sav_acc_balance():
     
     try:
         account_id = int(input("Enter account ID: "))
-        mycursor.execute(f"SELECT * FROM savings_accounts WHERE id = {account_id}")
+        mycursor.execute(f"SELECT * FROM savings_accounts WHERE account_id = {account_id}")
         for x in mycursor:
-            new_balance = x[6]
+            new_balance = x[7]
             has_results = True
-            if x[8] == 1:
+            if x[9] == 1:
                 amount = Decimal(input("Enter the amount: "))
                 description = input("Enter a description for the payment: ")
                 type = input("Enter a type (C) for Credit, (D) for Debit: ").lower()
@@ -210,7 +210,7 @@ def update_sav_acc_balance():
                 date = date.strftime("%Y-%m-%d %H:%M:%S")
                 mycursor.execute("INSERT INTO transactions (account_id, amount, description, type) VALUES (%s,%s,%s,%s)", (account_id, amount, description, typeValue))
                 print("Successfully added transaction! Updating account balance.")
-                mycursor.execute(f"UPDATE savings_accounts SET balance = {new_balance} WHERE id = {account_id}")
+                mycursor.execute(f"UPDATE savings_accounts SET balance = {new_balance} WHERE account_id = {account_id}")
                 mydb.commit()
                 print(f"Balance successfully updated! New balance is: £{new_balance}")
         if not has_results:
@@ -220,29 +220,35 @@ def update_sav_acc_balance():
     return  
 
 # Displays the list of transactions for a specific account
-def view_transactions(account_id, transactions):
+def view_transactions():
+    account_id = int(input("Enter account ID: "))
+    mycursor.execute(f"SELECT * FROM transactions WHERE account_id = {account_id}")
     print("*****************************************")
     print("Transactions list:")
-    
-    for key, val in transactions.items():
-        if val.account_id == account_id:
-            print("---------------")
-            print(f"Transaction ID: {key}\r\nAccount ID: {val.account_id}\r\nAmount: £{val.amount}\r\nDescription: {val.description}\r\nDate: {val.date}\r\nType: {val.type}")
+    for x in mycursor:
+        print("---------------")
+        print(f"Transaction ID: {x[0]}\r\nAccount ID: {x[1]}\r\nAmount: £{x[2]}\r\nDescription: {x[3]}\r\nDate: {x[4]}\r\nType: {x[5]}")
 
 # Interest calculator for savings accounts
-def interest_calculator(savings_account, duration):
-    principal = savings_account.balance
-    counter = 0
-    while counter < duration:
-        principal += (principal / 100) * savings_account.interest_rate
-        print(f"The amount will be after {counter + 1} years: £{principal:.2f}")
-        counter += 1
-        
+def interest_calculator():
+    try:
+        has_results = False
+        id = int(input("Enter savings account ID: "))
+        duration = int(input("Enter number of years to calculate interest for: "))
+        mycursor.execute(f"SELECT balance, interest_rate FROM savings_accounts WHERE account_id = {id}")
+        for x in mycursor:
+            principal = x[0]
+            counter = 0
+            while counter < duration:
+                principal += (principal / 100) * x[1]
+                print(f"The amount will be after {counter + 1} years: £{principal:.2f}")
+                counter += 1
+    except ValueError:
+        print("Account ID or duration must be a number!")
+          
 def main():
     is_running = True
-    current_accounts = {}
     savings_accounts = {}
-    transactions = {}
 
     print("Welcome to Robert's Banking App. Please select an option:")
     while is_running:
@@ -278,23 +284,9 @@ def main():
                                     else:
                                         print("Invalid option! Test")
                                 case "5":   # View list of transactions for a bank account
-                                    account_id = int(input("Enter account ID: "))
-                                    if account_id in current_accounts:
-                                        for key, val in current_accounts.items():
-                                                view_transactions(account_id, transactions)
-                                    elif account_id in savings_accounts:
-                                        for key, val in savings_accounts.items():
-                                                view_transactions(account_id, transactions)
-                                    else:
-                                        print(f"Bank account ID: {current_account} does not exist!")
+                                    view_transactions()
                                 case "6":   # Interest calculator for savings account.
-                                    try:
-                                        account_id = int(input("Enter account ID: "))
-                                        duration = int(input("Enter number of years to calculate interest for: "))
-                                        for key, val in savings_accounts.items():
-                                            interest_calculator(val, duration)
-                                    except ValueError:
-                                        print("Account ID or duration must be a number!")
+                                    interest_calculator()                                    
                                 case "x":
                                     break
                                 case _:
