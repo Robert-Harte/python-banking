@@ -1,0 +1,46 @@
+-- MySQL script to create a database for my python BankingApp.
+-- Implemented as part of Phase 4 of the project.
+DROP SCHEMA IF EXISTS BankingApp;
+CREATE SCHEMA IF NOT EXISTS BankingApp;
+
+USE BankingApp;
+
+CREATE TABLE customers (
+    id INT PRIMARY KEY,
+    name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE current_accounts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT,
+    customer_id INT,
+    account_name VARCHAR(100),
+    sort_code INT,
+    account_number INT,
+    balance DECIMAL(13,2),
+    status BOOLEAN
+);
+
+CREATE TABLE savings_accounts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT,
+    customer_id INT,
+    cur_acc_id INT,
+    account_name VARCHAR(100),
+    sort_code INT,
+    account_number INT,
+    balance DECIMAL(13,2),
+    interest_rate DECIMAL(5,2),
+    status BOOLEAN,
+    UNIQUE KEY cur_acc_id_UNIQUE (cur_acc_id)
+);
+
+CREATE TABLE transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT,
+    amount DECIMAL(13,2),
+    description VARCHAR(100),
+    entered_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(10)
+)
