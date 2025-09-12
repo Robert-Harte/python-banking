@@ -8,7 +8,7 @@ Phase 2 implemented.
 
 Phase 3 implemented.
 
-Phase 4 in progess - conversion to using a database.
+Phase 4 implemented - conversion to using a database.
     Implemented:
         -   Customers (Adding / Viewing)
         -   Bank accounts (Current / Savings accounts)
